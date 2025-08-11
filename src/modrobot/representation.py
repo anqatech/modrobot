@@ -110,3 +110,9 @@ class ModRobot:
             "T:\n"
             f"{transformation_matrix_str}"
         )
+
+    def transform_vector(self, vector):
+        if vector.shape != (3, 1):
+            raise ValueError("The input vector must be of dimension 3x1.")
+            
+        return self.transformation_matrix @ np.vstack( (vector, 1) )
