@@ -1,3 +1,3 @@
-from .representation.rigidbodyrepresentation import RigidBodyRepresentation
+from .representation.rigid_body_representation import RigidBodyRepresentation
 
 __version__ = "0.1.0"
