@@ -26,7 +26,7 @@ __pycache__/
 # --- Build / packaging ---
 # build/
 # dist/
-# *.egg-info/
+*.egg-info/
 # .eggs/
 # pip-wheel-metadata/
 # wheelhouse/
