@@ -25,6 +25,17 @@ class ModRobot:
 
         self._transformation_matrix = self.build_transformation_matrix()
         self._transformation_matrix_inverse = self.build_transformation_matrix_inverse()
+    
+    @classmethod
+    def from_transformation_matrix(cls, transformation_matrix, check=True):
+        if transformation_matrix.shape != (4, 4):
+            raise ValueError("The transformation matrix must be of dimension 4x4.")
+        if check and not np.allclose(transformation_matrix[3], [0, 0, 0, 1], atol=1e-12):
+            raise ValueError("Bottom row of the transformation matrix must be [0, 0, 0, 1].")
+        
+        R = transformation_matrix[:3, :3]
+        p = transformation_matrix[:3, 3:4]
+        return cls(R, p, check=check)
 
     @property
     def rotation_matrix(self):
