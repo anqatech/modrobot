@@ -53,3 +53,49 @@ class ModRobot:
             [self._rotation_matrix.T, -self._rotation_matrix.T @ self._origin_position],
             [ np.zeros( (1, 3) ) ,                          1                      ]
         ])
+
+    def __repr__(self):
+        rotation_matrix_str = np.array2string(
+            self._rotation_matrix,
+            separator=", ",
+            precision=16,
+            suppress_small=False,
+        )
+        origin_position_str = np.array2string(
+            self._origin_position,
+            separator=", ",
+            precision=16,
+            suppress_small=False,
+        )
+        return (
+            f"ModRobot(rotation_matrix=np.array({rotation_matrix_str}), "
+            f"origin_position=np.array({origin_position_str}))"
+        )
+        
+    def __str__(self):
+        rotation_matrix_str = np.array2string(
+            self._rotation_matrix,
+            precision=4,
+            suppress_small=True,
+            separator=" ",
+        )
+        origin_position_str = np.array2string(
+            self._origin_position,
+            precision=4,
+            suppress_small=True,
+            separator=" ",
+        )
+        transformation_matrix_str = np.array2string(
+            self._transformation_matrix,
+            precision=4,
+            suppress_small=True,
+            separator=" ",
+        )
+        detR = float(np.linalg.det(self._rotation_matrix))
+        return (
+            "ModRobot(SE3):\n\n"
+            f"R:\n{rotation_matrix_str}\n\n"
+            f"p:\n{origin_position_str}\n\n"
+            "T:\n"
+            f"{transformation_matrix_str}"
+        )
