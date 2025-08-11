@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "modrobot"
 version = "0.1.0"
 authors = [
-  { name="Your Name", email="your@email.com" },
+  { name="Jalal El Hazzat", email="jalal@anqatech.com" },
 ]
 description = "The package I created while studying the book Modern Robotics."
 readme = "README.md"
