@@ -1,6 +1,6 @@
 import numpy as np
 
-class ModRobot:
+class RigidBodyRepresentation:
     __slots__ = (
         "_rotation_matrix",
         "_origin_position",
