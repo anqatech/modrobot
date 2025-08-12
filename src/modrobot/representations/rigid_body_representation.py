@@ -8,6 +8,8 @@ class RigidBodyRepresentation:
         "_position_object",
         "_transformation_matrix",
         "_transformation_matrix_inverse",
+        "_adjoint_representation",
+        "_adjoint_representation_inverse",
     )
     
     def __init__(self, rotation_matrix, origin_position, check=True):
@@ -17,6 +19,8 @@ class RigidBodyRepresentation:
         # Build transformation matrices
         self._transformation_matrix = self._build_transformation_matrix()
         self._transformation_matrix_inverse = self._build_transformation_matrix_inverse()
+        self._adjoint_representation = self._build_adjoint_representation()
+        self._adjoint_representation_inverse = self._build_adjoint_representation_inverse()
     
     @classmethod
     def from_transformation_matrix(cls, transformation_matrix, check=True):
@@ -45,6 +49,34 @@ class RigidBodyRepresentation:
     def transformation_matrix_inverse(self):
         return self._transformation_matrix_inverse
     
+    @property
+    def adjoint_representation(self):
+        return self._adjoint_representation
+    
+    @property
+    def adjoint_representation_inverse(self):
+        return self._adjoint_representation_inverse
+
+    def _build_adjoint_representation(self):
+        R = self.rotation_matrix
+        p = self.origin_position
+        skew_p = self.skew_matrix(p)
+        
+        return np.block([
+            [     R,        np.zeros((3, 3)) ],
+            [ skew_p @ R ,         R         ]
+        ])
+
+    def _build_adjoint_representation_inverse(self):
+        R = self.rotation_matrix
+        p = self.origin_position
+        skew_p = self.skew_matrix(p)
+        
+        return np.block([
+            [     R.T,        np.zeros((3, 3)) ],
+            [ -R.T @ skew_p ,        R.T       ]
+        ])
+
     def _build_transformation_matrix(self):
         R = self.rotation_matrix
         p = self.origin_position
@@ -89,6 +121,28 @@ class RigidBodyRepresentation:
             separator=" ",
         )
         return f"Transformation Matrix:\n\n{transformation_matrix_str}"
+
+    @staticmethod
+    def skew_matrix(vector):
+        v1, v2, v3 = vector.squeeze()
+    
+        return np.array([
+            [0, -v3, v2],
+            [v3, 0, -v1],
+            [-v2, v1, 0],
+        ])
+    
+    @staticmethod
+    def vector_from_skew_matrix(skew_matrix):
+        v1 = skew_matrix[2, 1]
+        v2 = skew_matrix[0, 2]
+        v3 = skew_matrix[1, 0]
+        
+        return np.array([
+            [v1],
+            [v2],
+            [v3],
+        ])
 
     def transform_vector(self, vector):
         if vector.shape != (3, 1):
