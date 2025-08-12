@@ -46,8 +46,8 @@ class RigidBodyRepresentation:
         return self._transformation_matrix_inverse
     
     def _build_transformation_matrix(self):
-        R = self._rotation_object.rotation_matrix
-        p = self._position_object.position_vector
+        R = self.rotation_matrix
+        p = self.origin_position
         
         return np.block([
             [        R,              p  ],
@@ -55,8 +55,8 @@ class RigidBodyRepresentation:
         ])
 
     def _build_transformation_matrix_inverse(self):
-        R = self._rotation_object.rotation_matrix
-        p = self._position_object.position_vector
+        R = self.rotation_matrix
+        p = self.origin_position
         
         return np.block([
             [        R.T,             -R.T @ p],
@@ -65,13 +65,13 @@ class RigidBodyRepresentation:
 
     def __repr__(self):
         rotation_matrix_str = np.array2string(
-            self._rotation_object.rotation_matrix,
+            self.rotation_matrix,
             separator=", ",
             precision=16,
             suppress_small=False,
         )
         origin_position_str = np.array2string(
-            self._position_object.position_vector,
+            self.origin_position,
             separator=", ",
             precision=16,
             suppress_small=False,
@@ -83,7 +83,7 @@ class RigidBodyRepresentation:
         
     def __str__(self):
         transformation_matrix_str = np.array2string(
-            self._transformation_matrix,
+            self.transformation_matrix,
             precision=4,
             suppress_small=True,
             separator=" ",
