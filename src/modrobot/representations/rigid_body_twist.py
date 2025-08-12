@@ -7,6 +7,7 @@ class RigidBodyTwist:
         "_body_twist",
         "_representation",
         "_adjoint_representation",
+        "_space_twist",
     )
 
     def __init__(self, body_twist, representation):
@@ -14,10 +15,11 @@ class RigidBodyTwist:
             raise TypeError("The body twist must be a 6x1 NumPy array.")
         if not isinstance(representation, RigidBodyRepresentation):
             raise TypeError("The rigid body representation must be of type RigidBodyRepresentation")
-            
+    
         self._body_twist = body_twist
         self._representation = representation
         self._adjoint_representation = self._build_adjoint_representation()
+        self._space_twist = self.adjoint_representation @ self._body_twist
 
     @property
     def body_twist(self):
@@ -26,7 +28,15 @@ class RigidBodyTwist:
     @property
     def body_twist_matrix(self):
         return self.body_twist_skew_matrix()
-
+    
+    @property
+    def space_twist(self):
+        return self._space_twist
+    
+    @property
+    def space_twist_matrix(self):
+        return self.space_twist_skew_matrix()
+    
     @property
     def representation(self):
         return self._representation
@@ -90,6 +100,15 @@ class RigidBodyTwist:
     def body_twist_skew_matrix(self):
         w = self.body_twist[0:3]
         v = self.body_twist[3:]
+    
+        return np.block([ 
+            [self.skew_matrix(w), v] , 
+            [np.zeros( (1, 4) )]
+        ])
+
+    def space_twist_skew_matrix(self):
+        w = self.space_twist[0:3]
+        v = self.space_twist[3:]
     
         return np.block([ 
             [self.skew_matrix(w), v] , 
