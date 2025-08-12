@@ -1,5 +1,5 @@
 from .representations.rigid_body_representation import RigidBodyRepresentation
 from .representations.rotation_matrix import RotationMatrix
-from .representations.position_vetor import PositionVector
+from .representations.position_vector import PositionVector
 
 __version__ = "0.1.0"

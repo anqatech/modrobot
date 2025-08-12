@@ -10,7 +10,7 @@ class PositionVector:
         self._position_vector = position_vector
 
     @property
-    def vector(self):
+    def position_vector(self):
         return self._position_vector
 
     def __repr__(self):

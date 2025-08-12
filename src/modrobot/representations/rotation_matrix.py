@@ -16,7 +16,7 @@ class RotationMatrix:
         self._rotation_matrix = rotation_matrix
 
     @property
-    def matrix(self):
+    def rotation_matrix(self):
         return self._rotation_matrix
 
     def __repr__(self):
