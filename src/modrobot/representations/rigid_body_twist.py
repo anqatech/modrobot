@@ -5,7 +5,8 @@ from .rigid_body_representation import RigidBodyRepresentation
 class RigidBodyTwist:
     __slots__ = (
         "_body_twist",
-        "_representation"
+        "_representation",
+        "_adjoint_representation",
     )
 
     def __init__(self, body_twist, representation):
@@ -16,6 +17,7 @@ class RigidBodyTwist:
             
         self._body_twist = body_twist
         self._representation = representation
+        self._adjoint_representation = self._build_adjoint_representation()
 
     @property
     def body_twist(self):
@@ -28,6 +30,20 @@ class RigidBodyTwist:
     @property
     def representation(self):
         return self._representation
+    
+    @property
+    def adjoint_representation(self):
+        return self._adjoint_representation
+
+    def _build_adjoint_representation(self):
+        R = self.representation.rotation_matrix
+        p = self.representation.origin_position
+        skew_p = self.skew_matrix(p)
+        
+        return np.block([
+            [     R,        np.zeros((3, 3)) ],
+            [ skew_p @ R ,         R         ]
+        ])
 
     def __repr__(self):
         body_twist_str = np.array2string(
