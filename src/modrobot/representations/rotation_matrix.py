@@ -1,7 +1,7 @@
 import numpy as np
 
 class RotationMatrix:
-    __slots__ = ("_rotation_matrix")
+    __slots__ = ("_rotation_matrix",)
 
     def __init__(self, rotation_matrix, check=True):
         if not isinstance(rotation_matrix, np.ndarray) or rotation_matrix.shape != (3, 3):

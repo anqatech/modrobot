@@ -1,13 +1,21 @@
 import numpy as np
+from .rigid_body_representation import RigidBodyRepresentation
+
 
 class RigidBodyTwist:
-    __slots__ = ("_body_twist")
+    __slots__ = (
+        "_body_twist",
+        "_representation"
+    )
 
-    def __init__(self, body_twist):
+    def __init__(self, body_twist, representation):
         if not isinstance(body_twist, np.ndarray) or body_twist.shape != (6, 1):
             raise TypeError("The body twist must be a 6x1 NumPy array.")
+        if not isinstance(representation, RigidBodyRepresentation):
+            raise TypeError("The rigid body representation must be of type RigidBodyRepresentation")
             
         self._body_twist = body_twist
+        self._representation = representation
 
     @property
     def body_twist(self):
@@ -16,6 +24,10 @@ class RigidBodyTwist:
     @property
     def body_twist_matrix(self):
         return self.body_twist_skew_matrix()
+
+    @property
+    def representation(self):
+        return self._representation
 
     def __repr__(self):
         body_twist_str = np.array2string(

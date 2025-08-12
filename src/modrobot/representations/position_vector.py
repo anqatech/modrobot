@@ -1,7 +1,7 @@
 import numpy as np
 
 class PositionVector:
-    __slots__ = ("_position_vector")
+    __slots__ = ("_position_vector",)
 
     def __init__(self, position_vector):
         if not isinstance(position_vector, np.ndarray) or position_vector.shape != (3, 1):
