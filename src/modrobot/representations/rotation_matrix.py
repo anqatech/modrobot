@@ -21,7 +21,7 @@ class RotationMatrix:
 
     def __repr__(self):
         rotation_matrix_str = np.array2string(
-            self._rotation_matrix,
+            self.rotation_matrix,
             separator=", ",
             precision=16,
             suppress_small=False,
@@ -31,7 +31,7 @@ class RotationMatrix:
 
     def __str__(self):
         rotation_matrix_str = np.array2string(
-            self._rotation_matrix,
+            self.rotation_matrix,
             precision=4,
             suppress_small=True,
             separator=" ",

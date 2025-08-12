@@ -15,7 +15,7 @@ class PositionVector:
 
     def __repr__(self):
         position_vector_str = np.array2string(
-            self._position_vector,
+            self.position_vector,
             separator=", ",
             precision=16,
             suppress_small=False,
@@ -25,7 +25,7 @@ class PositionVector:
 
     def __str__(self):
         position_vector_str = np.array2string(
-            self._position_vector,
+            self.position_vector,
             precision=4,
             suppress_small=True,
             separator=" ",
