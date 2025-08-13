@@ -1,7 +1,11 @@
 import numpy as np
 
 class RotationMatrix:
-    __slots__ = ("_rotation_matrix",)
+    __slots__ = (
+        "_rotation_matrix",
+        "_theta",
+        "_omega",
+    )
 
     def __init__(self, rotation_matrix, check=True):
         if not isinstance(rotation_matrix, np.ndarray) or rotation_matrix.shape != (3, 3):
@@ -14,10 +18,42 @@ class RotationMatrix:
                 raise ValueError("The determinant of the rotation matrix must be +1.")
 
         self._rotation_matrix = rotation_matrix
+        self._theta, self._omega = self._compute_exponential_coordinates()
 
     @property
     def rotation_matrix(self):
         return self._rotation_matrix
+
+    @property
+    def theta(self):
+        return self._theta
+
+    @property
+    def omega(self):
+        return self._omega
+
+    def _compute_exponential_coordinates(self):
+        if np.allclose(self.rotation_matrix, np.eye(3), atol=1e-8):
+            theta = 0.0
+            omega = np.array([[0.0], [0.0], [0.0]])
+        
+        elif np.isclose(np.trace(self.rotation_matrix), -1.0, atol=1e-8):
+            theta = np.pi
+            R11, R22, R33 = self.rotation_matrix.diagonal()
+            
+            if R11 >= R22 and R11 >= R33:
+                omega = ( 1.0 / np.sqrt(2.0 * (1 + R11)) ) * np.array([R11 + 1.0, R[0,1], R[0,2]])
+            elif R22 >= R33:
+                omega = ( 1.0 / np.sqrt(2.0 * (1 + R22)) ) * np.array([R[0,1], R22 + 1.0, R[1,2]])
+            else:
+                omega = ( 1.0 / np.sqrt(2.0 * (1 + R33)) ) * np.array([R[0,2], R[1,2], R33 + 1.0])
+                
+        else:
+            theta = np.arccos(0.5 * (np.trace(self.rotation_matrix) - 1.0))
+            skew_omega = ( 1.0 / (2 * np.sin(theta)) ) * (self.rotation_matrix - self.rotation_matrix.T)
+            omega = self.vector_from_skew_matrix(skew_omega)
+
+        return theta, omega
 
     def __repr__(self):
         rotation_matrix_str = np.array2string(
@@ -38,3 +74,15 @@ class RotationMatrix:
         )
 
         return f"Rotation Matrix:\n\n{rotation_matrix_str}"
+    
+    @staticmethod
+    def vector_from_skew_matrix(skew_matrix):
+        v1 = skew_matrix[2, 1]
+        v2 = skew_matrix[0, 2]
+        v3 = skew_matrix[1, 0]
+        
+        return np.array([
+            [v1],
+            [v2],
+            [v3],
+        ])
