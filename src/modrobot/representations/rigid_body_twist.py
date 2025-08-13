@@ -9,15 +9,23 @@ class RigidBodyTwist:
         "_space_twist",
     )
 
-    def __init__(self, body_twist, representation):
-        if not isinstance(body_twist, np.ndarray) or body_twist.shape != (6, 1):
+    def __init__(self, twist_vector, representation, twist_type):
+        if not isinstance(twist_vector, np.ndarray) or twist_vector.shape != (6, 1):
             raise TypeError("The body twist must be a 6x1 NumPy array.")
         if not isinstance(representation, RigidBodyRepresentation):
             raise TypeError("The rigid body representation must be of type RigidBodyRepresentation")
     
-        self._body_twist = body_twist
         self._representation = representation
-        self._space_twist = self.representation.adjoint_representation @ self.body_twist
+        twist_type = twist_type.lower()
+
+        if twist_type == "body":
+            self._body_twist = twist_vector
+            self._space_twist = self.representation.adjoint_representation @ self.body_twist
+        elif twist_type == "space":
+            self._space_twist = twist_vector
+            self._body_twist = self.representation.adjoint_representation_inverse @ self.space_twist
+        else:
+            raise ValueError("twist_type must be either 'body' or 'space'.")
 
     @property
     def body_twist(self):
@@ -47,7 +55,7 @@ class RigidBodyTwist:
             suppress_small=False,
         )
 
-        return f"RigidBodyTwist(np.array({body_twist_str}))"
+        return f"RigidBodyTwist(np.array({body_twist_str}), twist_type='body')"
 
     def __str__(self):
         body_twist_str = np.array2string(
@@ -56,8 +64,14 @@ class RigidBodyTwist:
             suppress_small=True,
             separator=" ",
         )
+        space_twist_str = np.array2string(
+            self.space_twist,
+            precision=4,
+            suppress_small=True,
+            separator=" ",
+        )
 
-        return f"Body Twist:\n\n{body_twist_str}"
+        return f"Body Twist:\n\n{body_twist_str}\n\nSpace Twist:\n\n{space_twist_str}"
 
     @staticmethod
     def skew_matrix(vector):
