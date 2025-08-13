@@ -20,6 +20,17 @@ class RotationMatrix:
         self._rotation_matrix = rotation_matrix
         self._theta, self._omega = self._compute_exponential_coordinates()
 
+    @classmethod
+    def from_exponential_coordinates(cls, theta, omega, check=True):
+        if omega.shape != (3, 1):
+            raise ValueError("The rotation axis omega must be of dimension 3x1.")
+        if not np.isclose(np.linalg.norm(omega), 1.0):
+            raise ValueError("The rotation axis omega must be a unit vector.")
+        
+        w_skew = cls.skew_matrix(omega)
+        R = np.eye(3) + np.sin(theta) * w_skew + (1.0 - np.cos(theta)) * w_skew @ w_skew
+        return cls(R, check=check)
+
     @property
     def rotation_matrix(self):
         return self._rotation_matrix
@@ -74,6 +85,16 @@ class RotationMatrix:
         )
 
         return f"Rotation Matrix:\n\n{rotation_matrix_str}"
+    
+    @staticmethod
+    def skew_matrix(vector):
+        v1, v2, v3 = vector.squeeze()
+    
+        return np.array([
+            [0, -v3, v2],
+            [v3, 0, -v1],
+            [-v2, v1, 0],
+        ])
     
     @staticmethod
     def vector_from_skew_matrix(skew_matrix):
