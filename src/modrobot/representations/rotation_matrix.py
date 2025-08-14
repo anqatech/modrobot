@@ -26,9 +26,11 @@ class RotationMatrix:
             raise ValueError("The rotation axis exponential coordinates must be of dimension 3x1.")
 
         theta = np.linalg.norm(exponential_coordinates)
+        if theta < 1e-12:
+            R = np.eye(3)
+            return cls(R, check=check)
         omega = exponential_coordinates / theta
-        w_skew = cls.skew_matrix(omega)
-        R = np.eye(3) + np.sin(theta) * w_skew + (1.0 - np.cos(theta)) * w_skew @ w_skew
+        R = cls.matrix_exponential(theta, omega)
         return cls(R, check=check)
 
     @property
@@ -119,3 +121,8 @@ class RotationMatrix:
             [v2],
             [v3],
         ])
+
+    @classmethod
+    def matrix_exponential(cls, theta, omega):
+        w_skew = cls.skew_matrix(omega)
+        return np.eye(3) + np.sin(theta) * w_skew + (1.0 - np.cos(theta)) * w_skew @ w_skew

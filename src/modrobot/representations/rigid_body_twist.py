@@ -1,5 +1,6 @@
 import numpy as np
 from .rigid_body_representation import RigidBodyRepresentation
+from .rotation_matrix import RotationMatrix
 
 
 class RigidBodyTwist:
@@ -13,7 +14,7 @@ class RigidBodyTwist:
         if not isinstance(twist_vector, np.ndarray) or twist_vector.shape != (6, 1):
             raise TypeError("The body twist must be a 6x1 NumPy array.")
         if not isinstance(representation, RigidBodyRepresentation):
-            raise TypeError("The rigid body representation must be of type RigidBodyRepresentation")
+            raise TypeError("The rigid body representation must be of type RigidBodyRepresentation.")
     
         self._representation = representation
         twist_type = twist_type.lower()
@@ -26,6 +27,31 @@ class RigidBodyTwist:
             self._body_twist = self.representation.adjoint_representation_inverse @ self.space_twist
         else:
             raise ValueError("twist_type must be either 'body' or 'space'.")
+
+    @classmethod
+    def from_exponential_coordinates(cls, exponential_coordinates, twist_type):
+        if exponential_coordinates.shape != (6, 1):
+            raise ValueError("The rotation axis exponential coordinates must be of dimension 6x1.")
+        if not twist_type.lower() == "space":
+            raise ValueError(
+                f"When creating a RigidBodyTwist from exponential coordinates "
+                f"the twist_type must be 'space'."
+            )
+        
+        w = exponential_coordinates[0:3]
+        R = RotationMatrix.from_exponential_coordinates(w)
+        v = exponential_coordinates[3:]
+        if not np.isclose(R.theta, 0.0, atol=1e-12):
+            p = cls.top_right_matrix_exponential(w) @ (v / R.theta)
+        else:
+            p = v
+        matrix_exponential = np.block([
+            [R.rotation_matrix, p],
+            [np.array([[0, 0, 0, 1]])],
+        ])
+        T = RigidBodyRepresentation.from_transformation_matrix(matrix_exponential)
+
+        return cls(exponential_coordinates, T, twist_type)
 
     @property
     def body_twist(self):
@@ -94,6 +120,13 @@ class RigidBodyTwist:
             [v2],
             [v3],
         ])
+
+    @classmethod
+    def top_right_matrix_exponential(cls, w):
+        theta = np.linalg.norm(w)
+        omega = w / theta
+        w_skew = cls.skew_matrix(omega)
+        return np.eye(3) * theta + (1 - np.cos(theta)) * w_skew + (theta - np.sin(theta)) * w_skew @ w_skew
     
     def body_twist_skew_matrix(self):
         w = self.body_twist[0:3]
