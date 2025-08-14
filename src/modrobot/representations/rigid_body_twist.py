@@ -94,7 +94,7 @@ class RigidBodyTwist:
             [v2],
             [v3],
         ])
-
+    
     def body_twist_skew_matrix(self):
         w = self.body_twist[0:3]
         v = self.body_twist[3:]
