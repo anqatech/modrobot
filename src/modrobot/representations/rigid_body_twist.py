@@ -1,6 +1,7 @@
 import numpy as np
 from .rigid_body_representation import RigidBodyRepresentation
 from .rotation_matrix import RotationMatrix
+from .position_vector import PositionVector
 
 
 class RigidBodyTwist:
@@ -42,11 +43,11 @@ class RigidBodyTwist:
         R = RotationMatrix.from_exponential_coordinates(w)
         v = exponential_coordinates[3:]
         if not np.isclose(R.theta, 0.0, atol=1e-12):
-            p = cls.top_right_matrix_exponential(w) @ (v / R.theta)
+            p = PositionVector(cls.top_right_matrix_exponential(w) @ (v / R.theta))
         else:
-            p = v
+            p = PositionVector(v)
         matrix_exponential = np.block([
-            [R.rotation_matrix, p],
+            [R.rotation_matrix, p.position_vector],
             [np.array([[0, 0, 0, 1]])],
         ])
         T = RigidBodyRepresentation.from_transformation_matrix(matrix_exponential)
