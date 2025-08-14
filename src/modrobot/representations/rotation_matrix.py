@@ -53,11 +53,23 @@ class RotationMatrix:
             R11, R22, R33 = self.rotation_matrix.diagonal()
             
             if R11 >= R22 and R11 >= R33:
-                omega = ( 1.0 / np.sqrt(2.0 * (1 + R11)) ) * np.array([R11 + 1.0, R[0,1], R[0,2]])
+                omega = ( 1.0 / np.sqrt(2.0 * (1 + R11)) ) * np.array([
+                    R11 + 1.0, 
+                    self.rotation_matrix[0,1], 
+                    self.rotation_matrix[0,2]
+                ])
             elif R22 >= R33:
-                omega = ( 1.0 / np.sqrt(2.0 * (1 + R22)) ) * np.array([R[0,1], R22 + 1.0, R[1,2]])
+                omega = ( 1.0 / np.sqrt(2.0 * (1 + R22)) ) * np.array([
+                    self.rotation_matrix[0,1], 
+                    R22 + 1.0, 
+                    self.rotation_matrix[1,2]
+                ])
             else:
-                omega = ( 1.0 / np.sqrt(2.0 * (1 + R33)) ) * np.array([R[0,2], R[1,2], R33 + 1.0])
+                omega = ( 1.0 / np.sqrt(2.0 * (1 + R33)) ) * np.array([
+                    self.rotation_matrix[0,2], 
+                    self.rotation_matrix[1,2], 
+                    R33 + 1.0
+                ])
                 
         else:
             theta = np.arccos(0.5 * (np.trace(self.rotation_matrix) - 1.0))
