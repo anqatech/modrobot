@@ -54,6 +54,23 @@ class RigidBodyTwist:
 
         return cls(exponential_coordinates, T, twist_type)
 
+
+    @classmethod
+    def from_angular_velocity_and_position(cls, angular_velocity, position, twist_type):
+        if angular_velocity.shape != (3, 1):
+            raise ValueError("The angular velocity must be of dimension 3x1.")
+        if position.shape != (3, 1):
+            raise ValueError("The position vector must be of dimension 3x1.")
+        if not twist_type.lower() == "space":
+            raise ValueError(
+                f"When creating a RigidBodyTwist from angular velocity and position vector "
+                f"the twist_type must be 'space'."
+            )
+        
+        v = -np.linalg.cross(angular_velocity.squeeze(), position.squeeze()).reshape((3, 1))
+        
+        return cls.from_exponential_coordinates(np.concatenate((angular_velocity, v), axis=0), twist_type)
+
     @property
     def body_twist(self):
         return self._body_twist
