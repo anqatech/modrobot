@@ -23,15 +23,22 @@ class RigidBodyRepresentation:
         self._adjoint_representation_inverse = self._build_adjoint_representation_inverse()
     
     @classmethod
-    def from_transformation_matrix(cls, transformation_matrix, check=True):
-        if transformation_matrix.shape != (4, 4):
-            raise ValueError("The transformation matrix must be of dimension 4x4.")
-        if check and not np.allclose(transformation_matrix[3], [0, 0, 0, 1], atol=1e-12):
-            raise ValueError("Bottom row of the transformation matrix must be [0, 0, 0, 1].")
+    def from_space_data(cls, space_rotation_matrix, space_origin_position):
+        if space_rotation_matrix.shape != (3, 3):
+            raise ValueError("The space rotation matrix must be of dimension 3x3.")
+        if space_origin_position.shape != (3, 1):
+            raise ValueError("The space origin vector must be of dimension 3x1.")
         
-        R = transformation_matrix[:3, :3]
-        p = transformation_matrix[:3, 3:4]
-        return cls(R, p, check=check)
+        return cls(space_rotation_matrix, space_origin_position)
+
+    @classmethod
+    def from_body_data(cls, body_rotation_matrix, body_origin_position):
+        if body_rotation_matrix.shape != (3, 3):
+            raise ValueError("The body rotation matrix must be of dimension 3x3.")
+        if body_origin_position.shape != (3, 1):
+            raise ValueError("The body origin vector must be of dimension 3x1.")
+        
+        return cls(body_rotation_matrix.T, -body_rotation_matrix.T @ body_origin_position)
 
     @property
     def rotation_matrix(self):

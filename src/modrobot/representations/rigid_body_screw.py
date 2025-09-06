@@ -5,24 +5,26 @@ from .position_vector import PositionVector
 
 class RigidBodyScrew:
     __slots__ = (
-        "_exponential_coordinates", 
+        "_space_exponential_coordinates", 
+        "_body_exponential_coordinates", 
         "_representation", 
-        "_screw_axis", 
-        "_theta"
+        "_space_screw_axis", 
+        "_space_theta"
     )
 
-    def __init__(self, exponential_coordinates, representation):
-        self._exponential_coordinates = exponential_coordinates
+    def __init__(self, space_exponential_coordinates, body_exponential_coordinates, representation):
+        self._space_exponential_coordinates = space_exponential_coordinates
+        self._body_exponential_coordinates = body_exponential_coordinates
         self._representation = representation
-        self._compute_axis_and_theta()
+        self._compute_space_axis_and_theta()
 
     @classmethod
-    def from_exponential_coordinates(cls, exponential_coordinates, check=True):
-        if not isinstance(exponential_coordinates, np.ndarray) or exponential_coordinates.shape != (6, 1):
+    def from_space_exponential_coordinates(cls, space_exponential_coordinates, check=True):
+        if not isinstance(space_exponential_coordinates, np.ndarray) or space_exponential_coordinates.shape != (6, 1):
             raise TypeError("The exponential coordinates must be a 6x1 NumPy array.")
 
-        omega_theta = exponential_coordinates[0:3]
-        v_theta = exponential_coordinates[3:]
+        omega_theta = space_exponential_coordinates[0:3]
+        v_theta = space_exponential_coordinates[3:]
         
         theta = np.linalg.norm(omega_theta)
 
@@ -43,34 +45,35 @@ class RigidBodyScrew:
             p = G_theta @ v
             
         representation = RigidBodyRepresentation(R, p, check=False)
-        return cls(exponential_coordinates, representation)
+        body_exponential_coordinates = representation.adjoint_representation_inverse @ space_exponential_coordinates
+        return cls(space_exponential_coordinates, body_exponential_coordinates, representation)
 
-    @classmethod
-    def from_transformation(cls, representation):
-        if not isinstance(representation, RigidBodyRepresentation):
-            raise TypeError("Input must be a RigidBodyRepresentation object.")
+    # @classmethod
+    # def from_transformation(cls, representation):
+    #     if not isinstance(representation, RigidBodyRepresentation):
+    #         raise TypeError("Input must be a RigidBodyRepresentation object.")
 
-        R = representation.rotation_matrix
-        p = representation.origin_position
+    #     R = representation.rotation_matrix
+    #     p = representation.origin_position
         
-        rot_obj = RotationMatrix(R, check=False)
-        omega_theta = rot_obj.exponential_coordinates
-        theta = np.linalg.norm(omega_theta)
+    #     rot_obj = RotationMatrix(R, check=False)
+    #     omega_theta = rot_obj.exponential_coordinates
+    #     theta = np.linalg.norm(omega_theta)
         
-        if np.isclose(theta, 0.0, atol=1e-12):
-            omega_theta = np.zeros((3, 1))
-            v_theta = p
-        else:
-            omega = omega_theta / theta
-            w_skew = RotationMatrix.skew_matrix(omega)
-            # Using textbook formula (3.92) for G_inv
-            G_inv_theta = (np.eye(3) / theta) - 0.5 * w_skew + \
-                          ((1.0 / theta) - 0.5 / np.tan(theta / 2.0)) * (w_skew @ w_skew)
-            v = G_inv_theta @ p
-            v_theta = v * theta
+    #     if np.isclose(theta, 0.0, atol=1e-12):
+    #         omega_theta = np.zeros((3, 1))
+    #         v_theta = p
+    #     else:
+    #         omega = omega_theta / theta
+    #         w_skew = RotationMatrix.skew_matrix(omega)
+    #         # Using textbook formula (3.92) for G_inv
+    #         G_inv_theta = (np.eye(3) / theta) - 0.5 * w_skew + \
+    #                       ((1.0 / theta) - 0.5 / np.tan(theta / 2.0)) * (w_skew @ w_skew)
+    #         v = G_inv_theta @ p
+    #         v_theta = v * theta
             
-        exp_coords = np.vstack([omega_theta, v_theta])
-        return cls(exp_coords, representation)
+    #     exp_coords = np.vstack([omega_theta, v_theta])
+    #     return cls(exp_coords, representation)
 
     @property
     def exponential_coordinates(self):
@@ -88,21 +91,21 @@ class RigidBodyScrew:
     def theta(self):
         return self._theta
 
-    def _compute_axis_and_theta(self):
-        omega_theta = self._exponential_coordinates[0:3]
-        v_theta = self._exponential_coordinates[3:]
+    def _compute_space_axis_and_theta(self):
+        omega_theta = self._space_exponential_coordinates[0:3]
+        v_theta = self._space_exponential_coordinates[3:]
         
         theta = np.linalg.norm(omega_theta)
         
         if np.isclose(theta, 0.0, atol=1e-12):
-            self._theta = np.linalg.norm(v_theta)
-            if np.isclose(self._theta, 0.0, atol=1e-12):
-                 self._screw_axis = np.zeros((6, 1))
+            self._space_theta = np.linalg.norm(v_theta)
+            if np.isclose(self._space_theta, 0.0, atol=1e-12):
+                 self._space_screw_axis = np.zeros((6, 1))
             else:
-                 self._screw_axis = np.vstack([np.zeros((3, 1)), v_theta / self._theta])
+                 self._space_screw_axis = np.vstack([np.zeros((3, 1)), v_theta / self._space_theta])
         else:
-            self._theta = theta
-            self._screw_axis = self._exponential_coordinates / self._theta
+            self._space_theta = theta
+            self._space_screw_axis = self._space_exponential_coordinates / self._space_theta
 
     def __repr__(self):
         exponential_coordinates_str = np.array2string(
