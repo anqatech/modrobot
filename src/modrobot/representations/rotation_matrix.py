@@ -57,19 +57,19 @@ class RotationMatrix:
             if R11 >= R22 and R11 >= R33:
                 omega = ( 1.0 / np.sqrt(2.0 * (1 + R11)) ) * np.array([
                     R11 + 1.0, 
-                    self.rotation_matrix[0,1], 
-                    self.rotation_matrix[0,2]
+                    self.rotation_matrix[1, 0], 
+                    self.rotation_matrix[2, 0]
                 ])
             elif R22 >= R33:
                 omega = ( 1.0 / np.sqrt(2.0 * (1 + R22)) ) * np.array([
-                    self.rotation_matrix[0,1], 
+                    self.rotation_matrix[0, 1], 
                     R22 + 1.0, 
-                    self.rotation_matrix[1,2]
+                    self.rotation_matrix[2, 1]
                 ])
             else:
                 omega = ( 1.0 / np.sqrt(2.0 * (1 + R33)) ) * np.array([
-                    self.rotation_matrix[0,2], 
-                    self.rotation_matrix[1,2], 
+                    self.rotation_matrix[0, 2], 
+                    self.rotation_matrix[1, 2], 
                     R33 + 1.0
                 ])
                 

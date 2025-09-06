@@ -1,77 +1,39 @@
 import numpy as np
 from .rigid_body_representation import RigidBodyRepresentation
-from .rotation_matrix import RotationMatrix
-from .position_vector import PositionVector
 
 
 class RigidBodyTwist:
     __slots__ = (
+        "_space_twist",
         "_body_twist",
         "_representation",
-        "_space_twist",
     )
 
-    def __init__(self, twist_vector, representation, twist_type):
-        if not isinstance(twist_vector, np.ndarray) or twist_vector.shape != (6, 1):
+    def __init__(self, space_twist, body_twist, representation):
+        """Private constructor. Use classmethods to create instances."""
+        self._space_twist = space_twist
+        self._body_twist = body_twist
+        self._representation = representation
+
+    @classmethod
+    def from_body_twist(cls, body_twist_vector, representation):
+        if not isinstance(body_twist_vector, np.ndarray) or body_twist_vector.shape != (6, 1):
             raise TypeError("The body twist must be a 6x1 NumPy array.")
         if not isinstance(representation, RigidBodyRepresentation):
             raise TypeError("The rigid body representation must be of type RigidBodyRepresentation.")
-    
-        self._representation = representation
-        twist_type = twist_type.lower()
 
-        if twist_type == "body":
-            self._body_twist = twist_vector
-            self._space_twist = self.representation.adjoint_representation @ self.body_twist
-        elif twist_type == "space":
-            self._space_twist = twist_vector
-            self._body_twist = self.representation.adjoint_representation_inverse @ self.space_twist
-        else:
-            raise ValueError("twist_type must be either 'body' or 'space'.")
+        space_twist_vector = representation.adjoint_representation @ body_twist_vector
+        return cls(space_twist_vector, body_twist_vector, representation)
 
     @classmethod
-    def from_exponential_coordinates(cls, exponential_coordinates, twist_type):
-        if exponential_coordinates.shape != (6, 1):
-            raise ValueError("The rotation axis exponential coordinates must be of dimension 6x1.")
-        if not twist_type.lower() == "space":
-            raise ValueError(
-                f"When creating a RigidBodyTwist from exponential coordinates "
-                f"the twist_type must be 'space'."
-            )
-        
-        w = exponential_coordinates[0:3]
-        R = RotationMatrix.from_exponential_coordinates(w)
-        v = exponential_coordinates[3:]
-        if not np.isclose(R.theta, 0.0, atol=1e-12):
-            p = PositionVector(cls.top_right_matrix_exponential(w) @ (v / R.theta))
-        else:
-            p = PositionVector(v)
-        matrix_exponential = np.block([
-            [R.rotation_matrix, p.position_vector],
-            [np.array([[0, 0, 0, 1]])],
-        ])
-        T = RigidBodyRepresentation.from_transformation_matrix(matrix_exponential)
+    def from_space_twist(cls, space_twist_vector, representation):
+        if not isinstance(space_twist_vector, np.ndarray) or space_twist_vector.shape != (6, 1):
+            raise TypeError("The space twist must be a 6-element NumPy array.")
+        if not isinstance(representation, RigidBodyRepresentation):
+            raise TypeError("The rigid body representation must be of type RigidBodyRepresentation.")
 
-        return cls(exponential_coordinates, T, twist_type)
-
-
-    @classmethod
-    def from_angular_velocity_and_position(cls, angular_velocity, position, twist_type):
-        if angular_velocity.shape != (3, 1):
-            raise ValueError("The angular velocity must be of dimension 3x1.")
-        if position.shape != (3, 1):
-            raise ValueError("The position vector must be of dimension 3x1.")
-        if not twist_type.lower() == "space":
-            raise ValueError(
-                f"When creating a RigidBodyTwist from angular velocity and position vector "
-                f"the twist_type must be 'space'."
-            )
-        if not np.isclose(np.linalg.norm(angular_velocity), 1.0):
-                raise ValueError("The angular velocity must be a unit vector.")
-        
-        v = -np.linalg.cross(angular_velocity.squeeze(), position.squeeze()).reshape((3, 1))
-        
-        return cls.from_exponential_coordinates(np.concatenate((angular_velocity, v), axis=0), twist_type)
+        body_twist_vector = representation.adjoint_representation_inverse @ space_twist_vector
+        return cls(space_twist_vector, body_twist_vector, representation)
 
     @property
     def body_twist(self):
@@ -128,25 +90,6 @@ class RigidBodyTwist:
             [v3, 0, -v1],
             [-v2, v1, 0],
         ])
-    
-    @staticmethod
-    def vector_from_skew_matrix(skew_matrix):
-        v1 = skew_matrix[2, 1]
-        v2 = skew_matrix[0, 2]
-        v3 = skew_matrix[1, 0]
-        
-        return np.array([
-            [v1],
-            [v2],
-            [v3],
-        ])
-
-    @classmethod
-    def top_right_matrix_exponential(cls, w):
-        theta = np.linalg.norm(w)
-        omega = w / theta
-        w_skew = cls.skew_matrix(omega)
-        return np.eye(3) * theta + (1 - np.cos(theta)) * w_skew + (theta - np.sin(theta)) * w_skew @ w_skew
     
     def body_twist_skew_matrix(self):
         w = self.body_twist[0:3]
