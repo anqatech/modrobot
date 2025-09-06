@@ -66,6 +66,8 @@ class RigidBodyTwist:
                 f"When creating a RigidBodyTwist from angular velocity and position vector "
                 f"the twist_type must be 'space'."
             )
+        if not np.isclose(np.linalg.norm(angular_velocity), 1.0):
+                raise ValueError("The angular velocity must be a unit vector.")
         
         v = -np.linalg.cross(angular_velocity.squeeze(), position.squeeze()).reshape((3, 1))
         
