@@ -1,6 +1,8 @@
 import numpy as np
 from .rotation_matrix import RotationMatrix
 from .position_vector import PositionVector
+from modrobot.utilities.skew_utils import skew_matrix
+
 
 class RigidBodyRepresentation:
     __slots__ = (
@@ -67,7 +69,7 @@ class RigidBodyRepresentation:
     def _build_adjoint_representation(self):
         R = self.rotation_matrix
         p = self.origin_position
-        skew_p = self.skew_matrix(p)
+        skew_p = skew_matrix(p)
         
         return np.block([
             [     R,        np.zeros((3, 3)) ],
@@ -77,7 +79,7 @@ class RigidBodyRepresentation:
     def _build_adjoint_representation_inverse(self):
         R = self.rotation_matrix
         p = self.origin_position
-        skew_p = self.skew_matrix(p)
+        skew_p = skew_matrix(p)
         
         return np.block([
             [     R.T,        np.zeros((3, 3)) ],
@@ -128,28 +130,6 @@ class RigidBodyRepresentation:
             separator=" ",
         )
         return f"Transformation Matrix:\n\n{transformation_matrix_str}"
-
-    @staticmethod
-    def skew_matrix(vector):
-        v1, v2, v3 = vector.squeeze()
-    
-        return np.array([
-            [0, -v3, v2],
-            [v3, 0, -v1],
-            [-v2, v1, 0],
-        ])
-    
-    @staticmethod
-    def vector_from_skew_matrix(skew_matrix):
-        v1 = skew_matrix[2, 1]
-        v2 = skew_matrix[0, 2]
-        v3 = skew_matrix[1, 0]
-        
-        return np.array([
-            [v1],
-            [v2],
-            [v3],
-        ])
 
     def transform_vector(self, vector):
         if vector.shape != (3, 1):

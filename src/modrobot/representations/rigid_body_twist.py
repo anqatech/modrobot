@@ -1,5 +1,6 @@
 import numpy as np
 from .rigid_body_representation import RigidBodyRepresentation
+from modrobot.utilities.skew_utils import skew_matrix
 
 
 class RigidBodyTwist:
@@ -117,23 +118,13 @@ class RigidBodyTwist:
         )
 
         return f"Space Twist:\n\n{space_twist_str}\n\nBody Twist:\n\n{body_twist_str}"
-
-    @staticmethod
-    def skew_matrix(vector):
-        v1, v2, v3 = vector.squeeze()
-    
-        return np.array([
-            [0, -v3, v2],
-            [v3, 0, -v1],
-            [-v2, v1, 0],
-        ])
     
     def body_twist_skew_matrix(self):
         w = self.body_twist[0:3]
         v = self.body_twist[3:]
     
         return np.block([ 
-            [self.skew_matrix(w), v] , 
+            [skew_matrix(w), v] , 
             [np.zeros( (1, 4) )]
         ])
 
@@ -142,6 +133,6 @@ class RigidBodyTwist:
         v = self.space_twist[3:]
     
         return np.block([ 
-            [self.skew_matrix(w), v] , 
+            [skew_matrix(w), v] , 
             [np.zeros( (1, 4) )]
         ])

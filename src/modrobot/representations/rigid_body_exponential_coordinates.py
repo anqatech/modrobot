@@ -1,6 +1,7 @@
 import numpy as np
 from .rigid_body_representation import RigidBodyRepresentation
 from .rotation_matrix import RotationMatrix
+from modrobot.utilities.skew_utils import skew_matrix
 
 
 class RigidBodyExponentialCoordinates:
@@ -39,7 +40,7 @@ class RigidBodyExponentialCoordinates:
             
             R = RotationMatrix.from_exponential_coordinates(w_theta).rotation_matrix
 
-            w_skew = self.skew_matrix(w)
+            w_skew = skew_matrix(w)
             G_theta = np.eye(3) * self.theta + (1 - np.cos(self.theta)) * w_skew + (self.theta - np.sin(self.theta)) * (w_skew @ w_skew)
             p = G_theta @ v
 
@@ -69,14 +70,4 @@ class RigidBodyExponentialCoordinates:
             suppress_small=True, 
         )
         return f"Screw Motion (Exponential Coords):\n{exponential_coordinates_str}"
-
-    @staticmethod
-    def skew_matrix(vector):
-        v1, v2, v3 = vector.squeeze()
-    
-        return np.array([
-            [0, -v3, v2],
-            [v3, 0, -v1],
-            [-v2, v1, 0],
-        ])
     

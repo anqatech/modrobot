@@ -1,4 +1,6 @@
 import numpy as np
+from modrobot.utilities.skew_utils import skew_matrix, vector_from_skew_matrix
+
 
 class RotationMatrix:
     __slots__ = (
@@ -76,7 +78,7 @@ class RotationMatrix:
         else:
             theta = np.arccos(0.5 * (np.trace(self.rotation_matrix) - 1.0))
             skew_omega = ( 1.0 / (2 * np.sin(theta)) ) * (self.rotation_matrix - self.rotation_matrix.T)
-            omega = self.vector_from_skew_matrix(skew_omega)
+            omega = vector_from_skew_matrix(skew_omega)
 
         return theta, omega
 
@@ -100,29 +102,7 @@ class RotationMatrix:
 
         return f"Rotation Matrix:\n\n{rotation_matrix_str}"
     
-    @staticmethod
-    def skew_matrix(vector):
-        v1, v2, v3 = vector.squeeze()
-    
-        return np.array([
-            [0, -v3, v2],
-            [v3, 0, -v1],
-            [-v2, v1, 0],
-        ])
-    
-    @staticmethod
-    def vector_from_skew_matrix(skew_matrix):
-        v1 = skew_matrix[2, 1]
-        v2 = skew_matrix[0, 2]
-        v3 = skew_matrix[1, 0]
-        
-        return np.array([
-            [v1],
-            [v2],
-            [v3],
-        ])
-
     @classmethod
     def matrix_exponential(cls, theta, omega):
-        w_skew = cls.skew_matrix(omega)
+        w_skew = skew_matrix(omega)
         return np.eye(3) + np.sin(theta) * w_skew + (1.0 - np.cos(theta)) * w_skew @ w_skew
